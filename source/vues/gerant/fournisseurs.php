@@ -127,7 +127,7 @@ $message = $_GET['message'] ?? '';
 <body>
 
     <div class="sidebar">
-        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gestionnaire</p></div>
+        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gérant</p></div>
         <nav class="nav flex-column mt-3">
             <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
             <a class="nav-link" href="produits.php"><i class="fas fa-boxes"></i> <span>Produits</span></a>
@@ -158,11 +158,14 @@ $message = $_GET['message'] ?? '';
         <div class="content-card">
             <div class="table-responsive">
                 <table class="table table-hover">
-                    <thead><tr><th>ID</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th></tr></thead>
+                    <thead><tr><th>N°</th><th>Nom</th><th>Email</th><th>Téléphone</th><th>Statut</th></tr></thead>
                     <tbody>
-                        <?php foreach ($fournisseurs as $f): ?>
+                        <?php 
+                        $compteur = 1; // Initialisation de la numérotation simple
+                        foreach ($fournisseurs as $f): 
+                        ?>
                             <tr>
-                                <td><?php echo $f['id_fournisseur']; ?></td>
+                                <td><?php echo $compteur++; ?></td>
                                 <td><strong><?php echo htmlspecialchars($f['nom']); ?></strong></td>
                                 <td><?php echo htmlspecialchars($f['email'] ?? 'N/A'); ?></td>
                                 <td><?php echo htmlspecialchars($f['telephone'] ?? 'N/A'); ?></td>

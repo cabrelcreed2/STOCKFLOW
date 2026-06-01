@@ -165,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="logo">
             <i class="fas fa-chart-line fa-2x"></i>
             <h4>STOCK<span>FLOW</span></h4>
-            <p>Gestionnaire</p>
+            <p>Gérant</p>
         </div>
         <nav class="nav flex-column mt-3">
             <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>

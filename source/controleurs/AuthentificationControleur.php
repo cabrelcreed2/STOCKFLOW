@@ -53,7 +53,22 @@ class AuthentificationControleur {
         }
         
         // Vérifier le mot de passe
-        if ($utilisateur['mot_de_passe'] !== $mot_de_passe) {
+        $mot_de_passe_valide = false;
+        
+        // D'abord essayer avec password_verify() (pour les mots de passe hashés)
+        if (password_verify($mot_de_passe, $utilisateur['mot_de_passe'])) {
+            $mot_de_passe_valide = true;
+        } 
+        // Sinon, essayer comparaison en clair (pour les anciens mots de passe non hashés)
+        elseif ($utilisateur['mot_de_passe'] === $mot_de_passe) {
+            $mot_de_passe_valide = true;
+            // Migration : hasher le mot de passe en BD pour la prochaine connexion
+            $this->utilisateur->modifierMotDePasse($utilisateur['id_utilisateur'], $mot_de_passe);
+            // Mettre à jour l'utilisateur en session avec le hash
+            $utilisateur = $this->utilisateur->getByEmail($email);
+        }
+        
+        if (!$mot_de_passe_valide) {
             return [
                 'succes' => false,
                 'message' => 'Email ou mot de passe incorrect.'

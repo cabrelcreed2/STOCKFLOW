@@ -47,6 +47,9 @@ class Utilisateur {
     // Ajouter un utilisateur
     // --------------------------------------------------------
     public function ajouter($nom, $prenom, $email, $mot_de_passe, $role) {
+        // Hasher le mot de passe
+        $mot_de_passe_hache = password_hash($mot_de_passe, PASSWORD_BCRYPT);
+        
         $sql = "INSERT INTO utilisateur (nom, prenom, email, mot_de_passe, role) 
                 VALUES (:nom, :prenom, :email, :mot_de_passe, :role)";
         $stmt = $this->conn->prepare($sql);
@@ -54,7 +57,7 @@ class Utilisateur {
             'nom' => $nom,
             'prenom' => $prenom,
             'email' => $email,
-            'mot_de_passe' => $mot_de_passe,
+            'mot_de_passe' => $mot_de_passe_hache,
             'role' => $role
         ]);
     }
@@ -80,11 +83,14 @@ class Utilisateur {
     // Modifier le mot de passe
     // --------------------------------------------------------
     public function modifierMotDePasse($id, $mot_de_passe) {
+        // Hasher le mot de passe
+        $mot_de_passe_hache = password_hash($mot_de_passe, PASSWORD_BCRYPT);
+        
         $sql = "UPDATE utilisateur SET mot_de_passe = :mot_de_passe WHERE id_utilisateur = :id";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([
             'id' => $id,
-            'mot_de_passe' => $mot_de_passe
+            'mot_de_passe' => $mot_de_passe_hache
         ]);
     }
     

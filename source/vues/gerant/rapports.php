@@ -181,7 +181,7 @@ if (!empty($type)) {
 <body>
 
     <div class="sidebar">
-        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gestionnaire</p></div>
+        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gérant</p></div>
         <nav class="nav flex-column mt-3">
             <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
             <a class="nav-link" href="produits.php"><i class="fas fa-boxes"></i> <span>Produits</span></a>

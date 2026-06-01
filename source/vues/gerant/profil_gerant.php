@@ -222,7 +222,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
 
     <div class="sidebar">
-        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gestionnaire</p></div>
+        <div class="logo"><i class="fas fa-chart-line fa-2x"></i><h4>STOCK<span>FLOW</span></h4><p>Gérant</p></div>
         <nav class="nav flex-column mt-3">
             <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
             <a class="nav-link" href="produits.php"><i class="fas fa-boxes"></i> <span>Produits</span></a>
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="profile-avatar"><i class="fas fa-user-tie"></i></div>
             <h4><?php echo htmlspecialchars($user['prenom'] . ' ' . $user['nom']); ?></h4>
             <p class="text-muted"><?php echo htmlspecialchars($user['email']); ?></p>
-            <span class="badge bg-light text-dark border"><i class="fas fa-briefcase me-1" style="color: var(--primary);"></i>Gestionnaire</span>
+            <span class="badge bg-light text-dark border"><i class="fas fa-briefcase me-1" style="color: var(--primary);"></i>Gérant</span>
         </div>
 
         <div class="form-card">
@@ -262,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="col-md-6 mb-3"><label class="form-label">Nom</label><input type="text" name="nom" class="form-control" value="<?php echo htmlspecialchars($user['nom']); ?>" required></div>
                     <div class="col-md-6 mb-3"><label class="form-label">Prénom</label><input type="text" name="prenom" class="form-control" value="<?php echo htmlspecialchars($user['prenom']); ?>" required></div>
                     <div class="col-md-6 mb-3"><label class="form-label">Email</label><input type="email" class="form-control" value="<?php echo htmlspecialchars($user['email']); ?>" readonly></div>
-                    <div class="col-md-6 mb-3"><label class="form-label">Rôle</label><input type="text" class="form-control" value="GESTIONNAIRE" readonly></div>
+                    <div class="col-md-6 mb-3"><label class="form-label">Rôle</label><input type="text" class="form-control" value="Gérant" readonly></div>
                 </div>
                 <button type="submit" class="btn btn-outline-primary"><i class="fas fa-save me-1"></i>Mettre à jour</button>
             </form>
