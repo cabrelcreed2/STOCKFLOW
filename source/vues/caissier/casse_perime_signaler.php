@@ -259,27 +259,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST" action="" id="signalementForm">
                 
                 <div class="mb-4">
-                    <label class="form-label fw-bold small text-uppercase tracking-wider text-muted">1. Nature du problème</label>
+                    <label class="form-label fw-bold small text-uppercase tracking-wider text-muted"> Nature du problème</label>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="type-card casse selected" data-type="CASSE" onclick="selectionnerType(this)">
-                                <i class="fas fa-heart-broken"></i>
-                                <h6 class="fw-bold mb-1">Casse / Démarque directe</h6>
+                                <!-- <i class="fas fa-heart-broken"></i> -->
+                                <h6 class="fw-bold mb-1">Casse </h6>
                                 <small class="text-muted d-block">Article abîmé, emballage détruit ou impropre à la vente</small>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="type-card perime" data-type="PERIME" onclick="selectionnerType(this)">
-                                <i class="fas fa-hourglass-end"></i>
+                                <!-- <i class="fas fa-hourglass-end"></i> -->
                                 <h6 class="fw-bold mb-1">Date de Péremption</h6>
-                                <small class="text-muted d-block">DLC/DLUO dépassée, produit retiré définitivement</small>
+                                <small class="text-muted d-block">Date de péremption dépassée</small>
                             </div>
                         </div>
                     </div>
                     <input type="hidden" name="type" id="typeInput" value="CASSE">
                 </div>
 
-                <label class="form-label fw-bold small text-uppercase tracking-wider text-muted mb-2">2. Détails de l'article</label>
+                <label class="form-label fw-bold small text-uppercase tracking-wider text-muted mb-2"> Détails de l'article</label>
 
                 <div class="mb-3">
                     <label for="id_produit" class="form-label fw-medium">Sélectionner l'article concerné</label>
