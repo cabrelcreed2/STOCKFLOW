@@ -1,55 +1,26 @@
 <?php
 session_start();
 
-// Vérifier connexion
-if (!isset($_SESSION['utilisateur'])) {
-    header('Location: ../authentification/connexion.php');
-    exit;
+// On vérifie si l'utilisateur est connecté ET s'il est bien GÉRANT
+if (!isset($_SESSION['utilisateur']) || $_SESSION['utilisateur']['role'] !== 'GERANT') {
+    // Si ce n'est pas un gérant, on le redirige (vers la page de connexion ou son dashboard)
+    header('Location: ../../index.php'); 
+    exit();
 }
 
-if ($_SESSION['utilisateur']['role'] !== 'ADMIN') {
-    header('Location: ../authentification/connexion.php');
-    exit;
-}
-
+// Inclure les contrôleurs
 require_once __DIR__ . '/../../../source/controleurs/AdministrationControleur.php';
-require_once __DIR__ . '/../../../source/modeles/BaseDeDonnees.php';
-require_once __DIR__ . '/../../../source/modeles/Rayon.php';
 
 $adminCtrl = new AdministrationControleur();
+$rayons = $adminCtrl->listeRayons();
 $user = $_SESSION['utilisateur'];
 
-// Récupérer le rayon
-$id = $_GET['id'] ?? 0;
-$db = new Database();
-$conn = $db->connect();
-$rayonModel = new Rayon($conn);
-$rayon = $rayonModel->getById($id);
-
-if (!$rayon) {
-    header('Location: rayons.php');
-    exit;
-}
-
-$caissieres = $adminCtrl->listeCaissieres();
+// Traitement suppression
 $message = '';
-$erreur = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nom = $_POST['nom'] ?? '';
-    $emplacement = $_POST['emplacement'] ?? '';
-    $id_caissiere = $_POST['id_caissiere'] ?? '';
-    
-    if (empty($nom)) {
-        $erreur = 'Le nom est obligatoire.';
-    } else {
-        $adminCtrl->modifierRayon($id, $nom, $emplacement);
-        if (!empty($id_caissiere)) {
-            $adminCtrl->assignerCaissiere($id, $id_caissiere);
-        }
-        $message = 'Rayon modifié !';
-        $rayon = $rayonModel->getById($id);
-    }
+if (isset($_GET['action']) && $_GET['action'] === 'supprimer' && isset($_GET['id'])) {
+    $adminCtrl->supprimerRayon($_GET['id']);
+    $message = 'Rayon supprimé.';
+    $rayons = $adminCtrl->listeRayons();
 }
 ?>
 
@@ -58,13 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STOCKFLOW - Modifier rayon</title>
+    <title>STOCKFLOW - Rayons</title>
     
     <script>
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
     </script>
-    
+
     <link href="../bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../bootstrap-5.3.8-dist/fontawesome-free-6.7.2-web/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -82,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --text-muted: #64748b;
             --border-color: rgba(0,0,0,0.1);
             --shadow-color: rgba(0,0,0,0.05);
+            --table-hover: rgba(0,0,0,0.05);
         }
 
         [data-theme="dark"] {
@@ -92,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             --text-muted: #94a3b8;
             --border-color: rgba(255,255,255,0.1);
             --shadow-color: rgba(0,0,0,0.3);
+            --table-hover: rgba(255,255,255,0.05);
         }
 
         * { font-family: 'Poppins', sans-serif; }
@@ -125,31 +98,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .main-content { margin-left: 280px; padding: 20px; }
         
-        .form-card { 
+        .content-card { 
             background: var(--bg-surface); 
-            border-radius: 15px; padding: 30px; 
+            border-radius: 15px; padding: 20px; 
             box-shadow: 0 2px 10px var(--shadow-color); 
             transition: background-color 0.3s ease;
         }
 
-        /* --- Styles des formulaires en mode sombre --- */
-        [data-theme="dark"] .form-control,
-        [data-theme="dark"] .form-select {
-            background-color: var(--bg-body);
-            border-color: var(--border-color);
-            color: var(--text-main);
+        /* --- Styles du tableau en mode sombre --- */
+        [data-theme="dark"] .table { color: var(--text-main); }
+        [data-theme="dark"] .table th, 
+        [data-theme="dark"] .table td { 
+            background-color: var(--bg-surface); 
+            border-color: var(--border-color); 
+            color: var(--text-main); 
         }
-        [data-theme="dark"] .form-control:focus,
-        [data-theme="dark"] .form-select:focus {
-            background-color: var(--bg-body);
-            color: var(--text-main);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.25);
+        [data-theme="dark"] .table-hover tbody tr:hover td,
+        [data-theme="dark"] .table-hover tbody tr:hover th {
+            background-color: var(--table-hover);
         }
-        [data-theme="dark"] hr {
-            border-color: var(--border-color);
-            opacity: 0.2;
-        }
+        [data-theme="dark"] .text-muted { color: var(--text-muted) !important; }
         
         @media (max-width: 768px) { 
             .sidebar { width: 70px; } 
@@ -164,11 +132,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="logo">
             <i class="fas fa-chart-line fa-2x"></i>
             <h4>STOCK<span>FLOW</span></h4>
-            <p>Administrateur</p>
+            <p>Gérant</p>
         </div>
         <nav class="nav flex-column mt-3">
-            <a class="nav-link" href="tableau_de_bord_admin.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
-            <a class="nav-link" href="utilisateur.php"><i class="fas fa-users"></i> <span>Utilisateurs</span></a>
+            <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
             <a class="nav-link active" href="rayons.php"><i class="fas fa-layer-group"></i> <span>Rayons</span></a>
             <a class="nav-link" href="../../../deconnexion.php"><i class="fas fa-sign-out-alt"></i> <span>Déconnexion</span></a>
         </nav>
@@ -182,49 +149,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
-        <?php if (!empty($erreur)): ?>
-            <div class="alert alert-danger alert-dismissible fade show">
-                <i class="fas fa-exclamation-triangle me-2"></i><?php echo $erreur; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="mb-0"><i class="fas fa-edit me-2" style="color: var(--primary);"></i>Modifier le rayon</h3>
+            <h3 class="mb-0"><i class="fas fa-layer-group me-2" style="color: var(--primary);"></i>Gestion des rayons</h3>
             
             <div class="d-flex align-items-center">
                 <button id="theme-toggle" class="btn btn-outline-secondary me-3 rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-moon"></i>
                 </button>
-                <a href="rayons.php" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Retour</a>
+                
+                <a href="rayon_ajouter.php" class="btn btn-outline-primary"><i class="fas fa-plus"></i> Ajouter un rayon</a>
             </div>
         </div>
 
-        <div class="form-card">
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Nom du rayon</label>
-                    <input type="text" name="nom" class="form-control" value="<?php echo htmlspecialchars($rayon['nom']); ?>" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Emplacement</label>
-                    <input type="text" name="emplacement" class="form-control" value="<?php echo htmlspecialchars($rayon['emplacement'] ?? ''); ?>">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Caissière assignée</label>
-                    <select name="id_caissiere" class="form-select">
-                        <option value="">Aucune</option>
-                        <?php foreach ($caissieres as $c): ?>
-                            <option value="<?php echo $c['id_utilisateur']; ?>" <?php echo $rayon['id_caissiere'] == $c['id_utilisateur'] ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($c['prenom'] . ' ' . $c['nom']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <hr>
-                <button type="submit" class="btn btn-outline-primary"><i class="fas fa-save"></i> Mettre à jour</button>
-                <a href="rayons.php" class="btn btn-secondary">Annuler</a>
-            </form>
+        <div class="content-card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Emplacement</th>
+                            <th>Caissière assignée</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($rayons)): ?>
+                            <?php foreach ($rayons as $r): ?>
+                                <tr>
+                                    <td><?php echo $r['id_rayon']; ?></td>
+                                    <td><strong><?php echo htmlspecialchars($r['nom']); ?></strong></td>
+                                    <td><?php echo htmlspecialchars($r['emplacement'] ?? 'Non défini'); ?></td>
+                                    <td>
+                                        <?php if ($r['nom_caissiere']): ?>
+                                            <?php echo htmlspecialchars($r['prenom_caissiere'] . ' ' . $r['nom_caissiere']); ?>
+                                        <?php else: ?>
+                                            <span class="text-muted">Aucune</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <a href="rayon_modifier.php?id=<?php echo $r['id_rayon']; ?>" class="btn btn-warning btn-sm"><i class="fas fa-edit"></i></a>
+                                        <a href="?action=supprimer&id=<?php echo $r['id_rayon']; ?>" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ce rayon ?')"><i class="fas fa-trash"></i></a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">Aucun rayon trouvé.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -237,6 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const htmlEl = document.documentElement;
             const icon = themeToggle.querySelector('i');
 
+            // Met à jour l'icône initiale en fonction du thème stocké
             if (htmlEl.getAttribute('data-theme') === 'dark') {
                 icon.classList.remove('fa-moon');
                 icon.classList.add('fa-sun');
@@ -246,9 +224,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const currentTheme = htmlEl.getAttribute('data-theme');
                 const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
                 
+                // Application du thème et sauvegarde dans le cache du navigateur
                 htmlEl.setAttribute('data-theme', newTheme);
                 localStorage.setItem('theme', newTheme);
                 
+                // Changement de l'icône
                 if (newTheme === 'dark') {
                     icon.classList.remove('fa-moon');
                     icon.classList.add('fa-sun');

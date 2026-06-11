@@ -214,6 +214,7 @@ $user = $_SESSION['utilisateur'];
             <a class="nav-link" href="stocks_consulter.php"><i class="fas fa-warehouse"></i> <span>Stocks (état global)</span></a>
             <a class="nav-link" href="commandes.php"><i class="fas fa-shopping-cart"></i> <span>Commandes fournisseurs</span></a>
             <a class="nav-link" href="commandes_historique.php"><i class="fas fa-history"></i> <span>Historique</span></a>
+            <a class="nav-link" href="rayons.php"><i class="fas fa-layer-group"></i> <span>Rayons</span></a>
             <a class="nav-link" href="alertes.php"><i class="fas fa-bell"></i> <span>Alertes</span></a>
             <a class="nav-link" href="rapports.php"><i class="fas fa-chart-line"></i> <span>Rapports</span></a>
             <a class="nav-link" href="profil_gerant.php"><i class="fas fa-user"></i> <span>Mon profil</span></a>

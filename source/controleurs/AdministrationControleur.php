@@ -151,10 +151,16 @@ class AdministrationControleur {
     }
     
     // --------------------------------------------------------
-    // Ajouter un rayon
+    // CORRIGÉ : Ajouter un rayon et retourner son ID généré
     // --------------------------------------------------------
     public function ajouterRayon($nom, $emplacement) {
-        return $this->rayon->ajouter($nom, $emplacement);
+        $resultat = $this->rayon->ajouter($nom, $emplacement);
+        
+        if ($resultat) {
+            // Retourne l'ID auto-incrémenté du rayon qui vient d'être créé
+            return $this->conn->lastInsertId();
+        }
+        return false;
     }
     
     // --------------------------------------------------------

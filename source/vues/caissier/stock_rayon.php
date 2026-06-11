@@ -310,9 +310,9 @@ if ($rayon) {
             <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-4">
                 <input type="text" class="form-control w-100 w-md-25" id="recherche" placeholder="🔍 Rechercher un produit..." onkeyup="filtrerProduits()">
                 <div>
-                    <a href="inventaire_rayon_importer.php" class="btn btn-sm btn-outline-success me-1">
+                    <!-- <a href="inventaire_rayon_importer.php" class="btn btn-sm btn-outline-success me-1">
                         <i class="fas fa-upload"></i> Importer
-                    </a>
+                    </a> -->
                     <a href="caisse.php" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-cash-register"></i> Vendre
                     </a>

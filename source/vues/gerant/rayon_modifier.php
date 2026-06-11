@@ -1,49 +1,51 @@
 <?php
 session_start();
 
-// Vérifier connexion
-if (!isset($_SESSION['utilisateur'])) {
-    header('Location: ../authentification/connexion.php');
-    exit;
+
+// On vérifie si l'utilisateur est connecté ET s'il est bien GÉRANT
+if (!isset($_SESSION['utilisateur']) || $_SESSION['utilisateur']['role'] !== 'GERANT') {
+    // Si ce n'est pas un gérant, on le redirige (vers la page de connexion ou son dashboard)
+    header('Location: ../../index.php'); 
+    exit();
 }
 
-// Vérifier le rôle
-if ($_SESSION['utilisateur']['role'] !== 'ADMIN') {
-    header('Location: ../authentification/connexion.php');
-    exit;
-}
-
-// Inclure les contrôleurs
 require_once __DIR__ . '/../../../source/controleurs/AdministrationControleur.php';
+require_once __DIR__ . '/../../../source/modeles/BaseDeDonnees.php';
+require_once __DIR__ . '/../../../source/modeles/Rayon.php';
 
 $adminCtrl = new AdministrationControleur();
-$caissieres = $adminCtrl->listeCaissieres();
 $user = $_SESSION['utilisateur'];
 
+// Récupérer le rayon
+$id = $_GET['id'] ?? 0;
+$db = new Database();
+$conn = $db->connect();
+$rayonModel = new Rayon($conn);
+$rayon = $rayonModel->getById($id);
+
+if (!$rayon) {
+    header('Location: rayons.php');
+    exit;
+}
+
+$caissieres = $adminCtrl->listeCaissieres();
 $message = '';
 $erreur = '';
 
-// Traitement
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nom = $_POST['nom'] ?? '';
     $emplacement = $_POST['emplacement'] ?? '';
     $id_caissiere = $_POST['id_caissiere'] ?? '';
     
     if (empty($nom)) {
-        $erreur = 'Le nom du rayon est obligatoire.';
+        $erreur = 'Le nom est obligatoire.';
     } else {
-        $resultat = $adminCtrl->ajouterRayon($nom, $emplacement);
-        
-        if ($resultat) {
-            // Assigner la caissière si sélectionnée
-            if (!empty($id_caissiere)) {
-                // Attention : Assurez-vous que $conn est accessible ou que ajouterRayon renvoie l'ID
-                $adminCtrl->assignerCaissiere($conn->lastInsertId(), $id_caissiere);
-            }
-            $message = 'Rayon ajouté avec succès !';
-        } else {
-            $erreur = 'Erreur lors de l\'ajout.';
+        $adminCtrl->modifierRayon($id, $nom, $emplacement);
+        if (!empty($id_caissiere)) {
+            $adminCtrl->assignerCaissiere($id, $id_caissiere);
         }
+        $message = 'Rayon modifié !';
+        $rayon = $rayonModel->getById($id);
     }
 }
 ?>
@@ -53,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>STOCKFLOW - Ajouter rayon</title>
+    <title>STOCKFLOW - Modifier rayon</title>
     
     <script>
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -122,8 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         .form-card { 
             background: var(--bg-surface); 
-            border-radius: 15px; 
-            padding: 30px; 
+            border-radius: 15px; padding: 30px; 
             box-shadow: 0 2px 10px var(--shadow-color); 
             transition: background-color 0.3s ease;
         }
@@ -141,9 +142,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: var(--text-main);
             border-color: var(--primary);
             box-shadow: 0 0 0 0.25rem rgba(249, 115, 22, 0.25);
-        }
-        [data-theme="dark"] .form-control::placeholder {
-            color: var(--text-muted);
         }
         [data-theme="dark"] hr {
             border-color: var(--border-color);
@@ -163,11 +161,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="logo">
             <i class="fas fa-chart-line fa-2x"></i>
             <h4>STOCK<span>FLOW</span></h4>
-            <p>Administrateur</p>
+            <p>Gérant</p>
         </div>
         <nav class="nav flex-column mt-3">
-            <a class="nav-link" href="tableau_de_bord_admin.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
-            <a class="nav-link" href="utilisateur.php"><i class="fas fa-users"></i> <span>Utilisateurs</span></a>
+            <a class="nav-link" href="tableau_de_bord_gerant.php"><i class="fas fa-tachometer-alt"></i> <span>Tableau de bord</span></a>
             <a class="nav-link active" href="rayons.php"><i class="fas fa-layer-group"></i> <span>Rayons</span></a>
             <a class="nav-link" href="../../../deconnexion.php"><i class="fas fa-sign-out-alt"></i> <span>Déconnexion</span></a>
         </nav>
@@ -189,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="mb-0"><i class="fas fa-plus-circle me-2" style="color: var(--primary);"></i>Ajouter un rayon</h3>
+            <h3 class="mb-0"><i class="fas fa-edit me-2" style="color: var(--primary);"></i>Modifier le rayon</h3>
             
             <div class="d-flex align-items-center">
                 <button id="theme-toggle" class="btn btn-outline-secondary me-3 rounded-circle" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
@@ -200,28 +197,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="form-card">
-            <form method="POST" action="">
+            <form method="POST">
                 <div class="mb-3">
                     <label class="form-label">Nom du rayon</label>
-                    <input type="text" name="nom" class="form-control" required>
+                    <input type="text" name="nom" class="form-control" value="<?php echo htmlspecialchars($rayon['nom']); ?>" required>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Emplacement</label>
-                    <input type="text" name="emplacement" class="form-control" placeholder="Ex: Allée A - Gauche">
+                    <input type="text" name="emplacement" class="form-control" value="<?php echo htmlspecialchars($rayon['emplacement'] ?? ''); ?>">
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Caissière assignée</label>
                     <select name="id_caissiere" class="form-select">
                         <option value="">Aucune</option>
                         <?php foreach ($caissieres as $c): ?>
-                            <option value="<?php echo $c['id_utilisateur']; ?>">
+                            <option value="<?php echo $c['id_utilisateur']; ?>" <?php echo $rayon['id_caissiere'] == $c['id_utilisateur'] ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($c['prenom'] . ' ' . $c['nom']); ?>
                             </option>
                         <?php endforeach; ?>
                     </select>
                 </div>
                 <hr>
-                <button type="submit" class="btn btn-outline-primary"><i class="fas fa-save"></i> Enregistrer</button>
+                <button type="submit" class="btn btn-outline-primary"><i class="fas fa-save"></i> Mettre à jour</button>
                 <a href="rayons.php" class="btn btn-secondary">Annuler</a>
             </form>
         </div>
